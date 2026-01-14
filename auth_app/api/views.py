@@ -1,9 +1,18 @@
+from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_decode
+
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+from .services import send_activation_email
 from .serializers import RegistrationSerializer, LoginTokenObtainPairSerializer
+
+
+User = get_user_model()
 
 class RegistrationView(APIView):
     """
@@ -18,11 +27,38 @@ class RegistrationView(APIView):
         """
         serializer = RegistrationSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response({'detail': 'User created successfully'}, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+            result = serializer.save()
+            user = result['user']
+            token = result['token']
+            send_activation_email(user, token)
+            return Response({'user': {'id': user.id, 'email': user.email}, 'token': token}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ActivateAccountView(APIView):
+    """
+    The `ActivateAccountView` class is an API view that handles user account activation.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, uidb64, token):
+        """
+        This function activates a user account based on a provided user ID and token,
+        returning appropriate responses for success or failure.
+        """
+        try:
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = User.objects.get(pk=uid)
+        except Exception:
+            return Response({'detail': 'Activation failed'}, status=status.HTTP_400_BAD_REQUEST)
+        if not default_token_generator.check_token(user, token):
+            return Response({'detail': 'Activation failed'}, status=status.HTTP_400_BAD_REQUEST)
+        if user.is_active:
+            return Response({'detail': 'Account already activated'}, status=status.HTTP_200_OK)
+        else: 
+            user.is_active = True
+            user.save()
+            return Response({'detail': 'Account activated successfully'}, status=status.HTTP_200_OK)
 
 class LoginView(TokenObtainPairView):
     serializer_class = LoginTokenObtainPairSerializer

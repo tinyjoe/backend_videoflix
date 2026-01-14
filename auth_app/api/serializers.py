@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -11,7 +12,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
     confirmed_password = serializers.CharField(write_only=True)
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'confirmed_password']
+        fields = ['email', 'password', 'confirmed_password']
         extra_kwargs = {'password': {'write_only': True}, 'email': {'required': True}}
 
     def validate_confirmed_password(self, value):
@@ -24,16 +25,17 @@ class RegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Passwords do not match')
         return value
     
-    def save(self):
+    def create(self, validated_data):
         """
-        The `save` function creates a new user account with the provided email, username, and password,
-        and saves it to the database.
+        The function `create` creates a new user instance with the provided validated data,
+        sets the user's password, generates a token, and saves the user to the database.
         """
-        pw = self.validated_data['password']
-        account = User(email=self.validated_data['email'], username=self.validated_data['username'])
-        account.set_password(pw)
-        account.save()
-        return account
+        validated_data.pop('confirmed_password')
+        user = User(username=validated_data['email'],email=validated_data['email'], is_active=False)
+        user.set_password(validated_data['password'])
+        user.save()
+        token = default_token_generator.make_token(user)
+        return {'user': user, 'token': token}
     
 
 class LoginTokenObtainPairSerializer(TokenObtainPairSerializer):
