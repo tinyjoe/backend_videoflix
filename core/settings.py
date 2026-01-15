@@ -43,7 +43,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_rq',
+    'corsheaders',
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
+    'rest_framework_simplejwt',
     'auth_app',
     'videoflix_app',
 ]

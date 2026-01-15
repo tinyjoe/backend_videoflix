@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -44,8 +44,7 @@ class LoginTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if 'username' in self.fields:
-            self.fields.pop('username')
+        self.fields['username'].required = False
 
     def validate(self, attrs):
         email = attrs.get('email')
@@ -56,4 +55,20 @@ class LoginTokenObtainPairSerializer(TokenObtainPairSerializer):
             raise serializers.ValidationError('Invalid email or password')
         if not user.check_password(password):
             raise serializers.ValidationError('Invalid email or password')
-        return super().validate(attrs)
+        if not user.is_active:
+            raise serializers.ValidationError('Account is not activated')
+        self.user = user
+        return super().validate({'username': user.username, 'password': password})
+    
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        """
+        The function `validate_email` checks if a user with the given email exists
+        and raises a validation error if not.
+        """
+        if not User.objects.filter(email=value).exists():
+            raise serializers.ValidationError('User with this email does not exist')
+        return value
