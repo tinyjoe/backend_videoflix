@@ -7,11 +7,12 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .services import send_activation_email, send_password_reset_email
 from .serializers import PasswordResetSerializer, RegistrationSerializer, LoginTokenObtainPairSerializer
+from .permissions import HasRefreshTokenCookie
 
 
 User = get_user_model()
@@ -73,8 +74,8 @@ class LoginView(TokenObtainPairView):
         access = serializer.validated_data.get('access')
         user = serializer.user
         response = Response({'detail': 'Login successful', 'user': {'id': user.id, 'username': user.username}}, status=status.HTTP_200_OK)
-        response.set_cookie(key='access', value=access, httponly=True, secure=True, samesite='Lax')
-        response.set_cookie(key='refresh', value=refresh, httponly=True, secure=True, samesite='Lax')
+        response.set_cookie(key='access', value=access, httponly=True, secure=False, samesite='Lax')
+        response.set_cookie(key='refresh', value=refresh, httponly=True, secure=False, samesite='Lax')
         return response
     
 
@@ -82,20 +83,20 @@ class LogoutTokenDeleteView(APIView):
     """
     This class defines a view in a Django REST framework API that handles logging out a user by deleting their access and refresh tokens stored in cookies.
     """
-
+    permission_classes = [HasRefreshTokenCookie]
     def post(self, request, *args, **kwargs):
         """
         The function logs out a user by deleting their access and refresh tokens stored in cookies.
         """
         refresh_token = request.COOKIES.get('refresh_token')
-        if refresh_token is None: 
-            return Response({'detail': 'Refresh token missing'}, status=status.HTTP_400_BAD_REQUEST)
-        try: 
+        if not refresh_token:
+            return Response({'detail': 'Refresh-Token missing.'},status=status.HTTP_400_BAD_REQUEST)
+        try:
             token = RefreshToken(refresh_token)
             token.blacklist()
         except TokenError:
-            return Response({'detail': 'Invalid or expired refresh token'}, status=status.HTTP_400_BAD_REQUEST)
-        response = Response({'detail': 'Logout successful! All tokens will be deleted. Refresh token is now invalid.'}, status=status.HTTP_200_OK)
+            return Response({'detail': 'Invalid or expired Refresh-Token.'},status=status.HTTP_400_BAD_REQUEST)
+        response = Response({'detail': 'Logout successful! All tokens will be deleted. Refresh token is now invalid.'},status=status.HTTP_200_OK)
         response.delete_cookie('access_token')
         response.delete_cookie('refresh_token')
         return response
