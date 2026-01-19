@@ -74,8 +74,8 @@ class LoginView(TokenObtainPairView):
         access = serializer.validated_data.get('access')
         user = serializer.user
         response = Response({'detail': 'Login successful', 'user': {'id': user.id, 'username': user.username}}, status=status.HTTP_200_OK)
-        response.set_cookie(key='access', value=access, httponly=True, secure=False, samesite='Lax')
-        response.set_cookie(key='refresh', value=refresh, httponly=True, secure=False, samesite='Lax')
+        response.set_cookie(key='access_token', value=access, httponly=True, secure=False, samesite='None')
+        response.set_cookie(key='refresh_token', value=refresh, httponly=True, secure=False, samesite='None')
         return response
     
 
