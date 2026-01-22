@@ -10,3 +10,4 @@ class Video(models.Model):
     video_480p = models.FileField(upload_to='videos/480p/', null=True, blank=True)
     video_720p = models.FileField(upload_to='videos/720p/', null=True, blank=True)
     video_1080p = models.FileField(upload_to='videos/1080p/', null=True, blank=True)
+    is_ready = models.BooleanField(default=False)

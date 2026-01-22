@@ -6,7 +6,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 from videoflix_app.models import Video
-from .tasks import convert_video
+from .tasks import convert_video, convert_mp4_to_hls
 
 
 @receiver(post_save, sender=Video)
@@ -17,6 +17,7 @@ def video_post_save(sender, instance, created, **kwargs):
             queue.enqueue(convert_video, instance.id, '480p')
             queue.enqueue(convert_video, instance.id, '720p')
             queue.enqueue(convert_video, instance.id, '1080p')
+            queue.enqueue(convert_mp4_to_hls, instance.id)
         transaction.on_commit(enqueue_tasks)
 
 
