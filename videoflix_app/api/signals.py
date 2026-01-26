@@ -11,6 +11,10 @@ from .tasks import convert_video, convert_mp4_to_hls
 
 @receiver(post_save, sender=Video)
 def video_post_save(sender, instance, created, **kwargs):
+    """
+    The function `video_post_save` enqueues tasks to convert a newly created video file to different
+    resolutions and formats using a task queue.
+    """
     if created and instance.video_file: 
         def enqueue_tasks():
             queue = django_rq.get_queue('default')

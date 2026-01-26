@@ -1,7 +1,6 @@
 import os
 import subprocess
 
-
 from django.core.files import File
 from videoflix_app.models import Video
 from django.conf import settings
@@ -19,7 +18,7 @@ def convert_video(video_id, resolution):
     target_relative_path = f"videos/{resolution}/{target_filename}"
     target_absolute_path = os.path.join(os.path.dirname(video.video_file.path), '..', resolution, target_filename)
     os.makedirs(os.path.dirname(target_absolute_path), exist_ok=True)
-    cmd = ["ffmpeg", "-y", "-i", input_path, "-vf", f"scale=hd{resolution[:-1]}", "-c:v", "libx264", "-crf", "23", "-c:a", "aac", target_absolute_path]  
+    cmd = ['ffmpeg', '-y', '-i', input_path, '-vf', f"scale=hd{resolution[:-1]}", '-c:v', 'libx264', '-crf', '23', '-c:a', 'aac', target_absolute_path]
     subprocess.run(cmd, check=True)   
     save_resolutions(resolution, video, input_path, target_filename)
     video.save()
@@ -41,6 +40,10 @@ def save_resolutions(resolution, video, input_path, target_filename):
 
 
 def convert_mp4_to_hls(video_id):
+    """
+    The function `convert_mp4_to_hls` converts a given MP4 video to HLS format and updates the video
+    object accordingly.
+    """
     video = Video.objects.get(id=video_id)
     base_dir = os.path.join(settings.MEDIA_ROOT, 'hls', f"video_{video.id}")
     os.makedirs(base_dir, exist_ok=True)
@@ -53,6 +56,10 @@ def convert_mp4_to_hls(video_id):
 
 
 def resolution_subprocess(base_dir, resolutions):
+    """
+    The function `resolution_subprocess` generates HLS video streams of different resolutions using
+    FFmpeg.
+    """
     for res, input_path in resolutions.items():
         out_dir = os.path.join(base_dir, res)
         os.makedirs(out_dir, exist_ok=True)
@@ -61,6 +68,9 @@ def resolution_subprocess(base_dir, resolutions):
 
 
 def write_hls_file(master_path):
+    """
+    The function `write_hls_file` writes HLS playlist information to a file specified by `master_path`.
+    """
     with open(master_path, 'w') as file: 
         file.write("""#EXTM3U
         #EXT-X-VERSION:3

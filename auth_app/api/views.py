@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .services import send_activation_email, send_password_reset_email
@@ -64,10 +64,17 @@ class ActivateAccountView(APIView):
             return Response({'detail': 'Account activated successfully'}, status=status.HTTP_200_OK)
 
 class LoginView(TokenObtainPairView):
+    """
+    A View that handles user login by obtaining JWT tokens and setting them in HTTP-only cookies.
+    """
     serializer_class = LoginTokenObtainPairSerializer
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
+        """
+        This function handles the POST request for user login, validates the data, sets cookies for
+        access and refresh tokens, and returns a response with user details.
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         refresh = serializer.validated_data.get('refresh')
@@ -103,7 +110,14 @@ class LogoutTokenDeleteView(APIView):
     
 
 class CookieTokenRefreshView(TokenRefreshView):
+    """
+    A View that handles refreshing JWT tokens by reading the refresh token from HTTP-only cookies.
+    """
     def post(self, request, *args, **kwargs):
+        """
+        This Python function refreshes an access token using a provided refresh token and sets a new
+        access token as a cookie in the response.
+        """
         refresh_token = request.COOKIES.get('refresh')
         if not refresh_token: 
             return Response({'detail': 'Refresh token not found'}, status=status.HTTP_400_BAD_REQUEST)

@@ -39,14 +39,25 @@ class RegistrationSerializer(serializers.ModelSerializer):
     
 
 class LoginTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    Serializer to obtain JWT token pair using email and password for authentication.
+    """
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
     def __init__(self, *args, **kwargs):
+        """
+        The function initializes an object with optional arguments and sets the 'username' field as not
+        required.
+        """
         super().__init__(*args, **kwargs)
         self.fields['username'].required = False
 
     def validate(self, attrs):
+        """
+        The function validates user credentials by checking the email, password, and account activation
+        status.
+        """
         email = attrs.get('email')
         password = attrs.get('password')
         try:
@@ -62,6 +73,9 @@ class LoginTokenObtainPairSerializer(TokenObtainPairSerializer):
     
 
 class PasswordResetSerializer(serializers.Serializer):
+    """
+    Serializer for requesting a password reset.
+    """
     email = serializers.EmailField()
 
     def validate_email(self, value):
