@@ -27,14 +27,14 @@ class HLSManifestView(APIView):
     """
     authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
-    def get(self, request, video_id: int, resolution: str):
+    def get(self, request, movie_id: int, resolution: str):
         """
         This Python function retrieves an HLS manifest file for a specific video based on the video ID
         and resolution provided.
         """
-        if not hls_manifest_exists(video_id, resolution):
+        if not hls_manifest_exists(movie_id, resolution):
             return Response(status=404)
-        path = build_hls_manifest_path(video_id, resolution)
+        path = build_hls_manifest_path(movie_id, resolution)
         return FileResponse(open(path, 'rb'), content_type='application/vnd.apple.mpegurl')
     
 
@@ -44,14 +44,14 @@ class HlsSegmentView(APIView):
     """
     authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
-    def get(self, request, video_id: int, resolution: str, segment: str):
+    def get(self, request, movie_id: int, resolution: str, segment: str):
         """
         This function retrieves a video segment based on the provided video ID, resolution, and segment
         name, handling errors for invalid or missing segments.
         """
         if not segment.endswith('.ts'):
             raise Http404('Invalid segment')
-        segment_path = segment_path = safe_join(settings.HLS_ROOT, str(video_id), resolution, segment,)
+        segment_path = segment_path = safe_join(settings.HLS_ROOT, str(movie_id), resolution, segment,)
         if not os.path.exists(segment_path):
             raise Http404('Segment not found')
         try:

@@ -22,6 +22,8 @@ def video_post_save(sender, instance, created, **kwargs):
             queue.enqueue(convert_video, instance.id, '720p')
             queue.enqueue(convert_video, instance.id, '1080p')
             queue.enqueue(convert_mp4_to_hls, instance.id)
+            instance.is_ready = True
+            instance.save()
         transaction.on_commit(enqueue_tasks)
 
 

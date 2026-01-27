@@ -20,16 +20,16 @@ def convert_video(video_id, resolution):
     os.makedirs(os.path.dirname(target_absolute_path), exist_ok=True)
     cmd = ['ffmpeg', '-y', '-i', input_path, '-vf', f"scale=hd{resolution[:-1]}", '-c:v', 'libx264', '-crf', '23', '-c:a', 'aac', target_absolute_path]
     subprocess.run(cmd, check=True)   
-    save_resolutions(resolution, video, input_path, target_filename)
+    save_resolutions(resolution, video, target_absolute_path, target_filename)
     video.save()
 
 
-def save_resolutions(resolution, video, input_path, target_filename):
+def save_resolutions(resolution, video, target_absolute_path, target_filename):
     """
     The function `save_resolutions` saves a video file with different resolutions using Django's file
     handling.
     """
-    with open(input_path, 'rb') as f:
+    with open(target_absolute_path, 'rb') as f:
         django_file = File(f)
         if resolution == '480p':
             video.video_480p.save(target_filename, django_file, save=False)

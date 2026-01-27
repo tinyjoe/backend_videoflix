@@ -118,7 +118,7 @@ class CookieTokenRefreshView(TokenRefreshView):
         This Python function refreshes an access token using a provided refresh token and sets a new
         access token as a cookie in the response.
         """
-        refresh_token = request.COOKIES.get('refresh')
+        refresh_token = request.COOKIES.get('refresh_token')
         if not refresh_token: 
             return Response({'detail': 'Refresh token not found'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.get_serializer(data={'refresh': refresh_token})
