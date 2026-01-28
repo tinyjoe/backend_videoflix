@@ -7,6 +7,7 @@ class VideoListSerializer(serializers.ModelSerializer):
     """
     Serializer for listing video objects.
     """
+    thumbnail_url = serializers.URLField(source='thumbnail', read_only=True)
     class Meta:
         model = Video
         fields = ['id', 'created_at', 'title', 'description', 'thumbnail_url', 'category']

@@ -81,8 +81,8 @@ class LoginView(TokenObtainPairView):
         access = serializer.validated_data.get('access')
         user = serializer.user
         response = Response({'detail': 'Login successful', 'user': {'id': user.id, 'username': user.username}}, status=status.HTTP_200_OK)
-        response.set_cookie(key='access_token', value=access, httponly=True, secure=False, samesite='None')
-        response.set_cookie(key='refresh_token', value=refresh, httponly=True, secure=False, samesite='None')
+        response.set_cookie(key='access', value=access, httponly=True, secure=True, samesite='None')
+        response.set_cookie(key='refresh', value=refresh, httponly=True, secure=True, samesite='None')
         return response
     
 
@@ -95,7 +95,7 @@ class LogoutTokenDeleteView(APIView):
         """
         The function logs out a user by deleting their access and refresh tokens stored in cookies.
         """
-        refresh_token = request.COOKIES.get('refresh_token')
+        refresh_token = request.COOKIES.get('refresh')
         if not refresh_token:
             return Response({'detail': 'Refresh-Token missing.'},status=status.HTTP_400_BAD_REQUEST)
         try:
@@ -104,8 +104,8 @@ class LogoutTokenDeleteView(APIView):
         except TokenError:
             return Response({'detail': 'Invalid or expired Refresh-Token.'},status=status.HTTP_400_BAD_REQUEST)
         response = Response({'detail': 'Logout successful! All tokens will be deleted. Refresh token is now invalid.'},status=status.HTTP_200_OK)
-        response.delete_cookie('access_token')
-        response.delete_cookie('refresh_token')
+        response.delete_cookie('access')
+        response.delete_cookie('refresh')
         return response
     
 
@@ -118,7 +118,7 @@ class CookieTokenRefreshView(TokenRefreshView):
         This Python function refreshes an access token using a provided refresh token and sets a new
         access token as a cookie in the response.
         """
-        refresh_token = request.COOKIES.get('refresh_token')
+        refresh_token = request.COOKIES.get('refresh')
         if not refresh_token: 
             return Response({'detail': 'Refresh token not found'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.get_serializer(data={'refresh': refresh_token})
@@ -126,7 +126,7 @@ class CookieTokenRefreshView(TokenRefreshView):
             serializer.is_valid(raise_exception=True)
         except TokenError:
             return Response({'detail': 'Refresh token invalid'}, status=status.HTTP_401_UNAUTHORIZED)
-        access_token = serializer.validated_data.get('access')
+        access_token = serializer.validated_data.get('access_token')
         response = Response({'detail': 'Token refreshed', 'access': access_token}, status=status.HTTP_200_OK)
         response.set_cookie(key='access', value=access_token, httponly=True, secure=True, samesite='Lax')
         return response

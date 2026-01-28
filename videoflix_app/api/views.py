@@ -15,7 +15,7 @@ class VideoListView(ListAPIView):
     """
     View to list all videos.
     """
-    authentication_classes = [CookieJWTAuthentication]
+    ##authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = Video.objects.all().order_by('id')
     serializer_class = VideoListSerializer
