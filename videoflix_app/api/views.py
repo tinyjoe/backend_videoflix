@@ -15,10 +15,15 @@ class VideoListView(ListAPIView):
     """
     View to list all videos.
     """
-    ##authentication_classes = [CookieJWTAuthentication]
+    authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = Video.objects.all().order_by('id')
     serializer_class = VideoListSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 
 class HLSManifestView(APIView):
@@ -33,7 +38,7 @@ class HLSManifestView(APIView):
         and resolution provided.
         """
         if not hls_manifest_exists(movie_id, resolution):
-            return Response(status=404)
+            raise Http404('HLS manifest not found')
         path = build_hls_manifest_path(movie_id, resolution)
         return FileResponse(open(path, 'rb'), content_type='application/vnd.apple.mpegurl')
     
@@ -49,12 +54,10 @@ class HlsSegmentView(APIView):
         This function retrieves a video segment based on the provided video ID, resolution, and segment
         name, handling errors for invalid or missing segments.
         """
+        segment = segment.rstrip('/')
         if not segment.endswith('.ts'):
             raise Http404('Invalid segment')
-        segment_path = segment_path = safe_join(settings.HLS_ROOT, str(movie_id), resolution, segment,)
-        if not os.path.exists(segment_path):
+        segment_path = safe_join(settings.HLS_ROOT, str(movie_id), resolution, segment,)
+        if not segment_path.exists():
             raise Http404('Segment not found')
-        try:
-            return FileResponse(open(segment_path, 'rb'),content_type='video/MP2T',)
-        except IOError:
-            raise Http404('Segment not readable')
+        return FileResponse(open(segment_path, 'rb'),content_type='video/MP2T',)
