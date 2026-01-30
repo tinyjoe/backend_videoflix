@@ -1,14 +1,13 @@
-import os
+from pathlib import Path
 from django.conf import settings
 from django.http import FileResponse, Http404
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 
 from videoflix_app.models import Video
 from .serializers import VideoListSerializer
-from .services import build_hls_manifest_path, hls_manifest_exists, safe_join
+from .services import hls_manifest_exists, safe_join
 from .authentication import CookieJWTAuthentication
 
 class VideoListView(ListAPIView):
@@ -39,7 +38,7 @@ class HLSManifestView(APIView):
         """
         if not hls_manifest_exists(movie_id, resolution):
             raise Http404('HLS manifest not found')
-        path = build_hls_manifest_path(movie_id, resolution)
+        path = Path(settings.HLS_ROOT) / str(movie_id) / resolution / 'index.m3u8'
         return FileResponse(open(path, 'rb'), content_type='application/vnd.apple.mpegurl')
     
 

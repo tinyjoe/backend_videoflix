@@ -1,3 +1,4 @@
+import os
 from django.conf import settings
 from django.http import Http404
 from pathlib import Path
@@ -31,3 +32,11 @@ def hls_manifest_exists(video_id: int, resolution: str):
 def hls_master_exists(video_id: int):
     path = build_hls_master_path(video_id)
     return path.exists()
+
+
+def validate_hls(video_id):
+    for res in ['480p', '720p', '1080p']:
+        path = Path(settings.HLS_ROOT) / str(video_id) / res / 'index.m3u8'
+        print("CHECK:", path)
+        if not path.exists():
+            raise RuntimeError(f"Missing HLS manifest for resolution {res}")
