@@ -63,6 +63,7 @@ class ActivateAccountView(APIView):
             user.save()
             return Response({'detail': 'Account activated successfully'}, status=status.HTTP_200_OK)
 
+
 class LoginView(TokenObtainPairView):
     """
     A View that handles user login by obtaining JWT tokens and setting them in HTTP-only cookies.

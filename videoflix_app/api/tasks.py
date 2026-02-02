@@ -22,12 +22,21 @@ def convert_video(video_id, resolution):
     target_dir = os.path.join(settings.MEDIA_ROOT, 'videos',resolution)
     os.makedirs(target_dir, exist_ok=True)
     target_path = os.path.join(target_dir, target_filename)
-    cmd = ['ffmpeg', '-y', '-i', input_path, '-vf', f"scale=hd{resolution[:-1]}", '-c:v', 'libx264', '-preset', 'fast', '-crf', '23', '-c:a', 'aac', target_path]
+    cmd = ffmpeg_command(resolution, input_path, target_path)
     result = subprocess.run(cmd, capture_output=True, text=True)   
     if result.returncode != 0:
         raise RuntimeError(f"FFmpeg error: {result.stderr}")
     save_resolutions(resolution, video, target_path, target_filename)
     video.save()
+
+
+def ffmpeg_command(resolution, input_path, target_path):
+    """
+    The function `ffmpeg_command` generates an FFmpeg command to resize a video file to a specified
+    resolution.
+    """
+    cmd = ['ffmpeg', '-y', '-i', input_path, '-vf', f"scale=hd{resolution[:-1]}", '-c:v', 'libx264', '-preset', 'fast', '-crf', '23', '-c:a', 'aac', target_path]
+    return cmd
 
 
 def save_resolutions(resolution, video, target_absolute_path, target_filename):
@@ -51,14 +60,7 @@ def convert_mp4_to_hls(video_id):
     """
     video = Video.objects.get(id=video_id)
     resolutions = {}
-    if video.video_480p:
-        resolutions['480p'] = video.video_480p.path
-    if video.video_720p:
-        resolutions['720p'] = video.video_720p.path
-    if video.video_1080p:
-        resolutions['1080p'] = video.video_1080p.path
-    if not resolutions: 
-        raise RuntimeError('no encoded videos found for HLS conversion.')
+    assign_resolutions_paths(video, resolutions)
     base_dir = os.path.join(settings.HLS_ROOT, str(video.id))
     os.makedirs(base_dir, exist_ok=True)
     resolution_subprocess(video.id, base_dir, resolutions)
@@ -68,6 +70,21 @@ def convert_mp4_to_hls(video_id):
     print("BASE:", base_dir)
     print("FILES:", os.listdir(base_dir))
     video.save()
+
+
+def assign_resolutions_paths(video, resolutions):
+    """
+    The function `assign_resolutions_paths` assigns paths for different video resolutions to a
+    dictionary based on the availability of those resolutions in the input video object.
+    """
+    if video.video_480p:
+        resolutions['480p'] = video.video_480p.path
+    if video.video_720p:
+        resolutions['720p'] = video.video_720p.path
+    if video.video_1080p:
+        resolutions['1080p'] = video.video_1080p.path
+    if not resolutions: 
+        raise RuntimeError('no encoded videos found for HLS conversion.')
 
 
 def resolution_subprocess(video_id, base_dir, resolutions):
