@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from videoflix_app.models import Video
 from .serializers import VideoListSerializer
-from .services import hls_manifest_exists, safe_join
+from .utils import hls_manifest_exists, safe_join
 from .authentication import CookieJWTAuthentication
 
 class VideoListView(ListAPIView):

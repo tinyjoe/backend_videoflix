@@ -10,12 +10,14 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .services import send_activation_email, send_password_reset_email
+from django.conf import settings
+from .utils import send_activation_email, send_password_reset_email
 from .serializers import PasswordResetSerializer, RegistrationSerializer, LoginTokenObtainPairSerializer
 from .permissions import HasRefreshTokenCookie
 
 
 User = get_user_model()
+IS_PROD = not settings.DEBUG
 
 class RegistrationView(APIView):
     """
@@ -82,8 +84,8 @@ class LoginView(TokenObtainPairView):
         access = serializer.validated_data.get('access')
         user = serializer.user
         response = Response({'detail': 'Login successful', 'user': {'id': user.id, 'username': user.username}}, status=status.HTTP_200_OK)
-        response.set_cookie(key='access', value=access, httponly=True, secure=True, samesite='None')
-        response.set_cookie(key='refresh', value=refresh, httponly=True, secure=True, samesite='None')
+        response.set_cookie(key='access', value=access, httponly=True, secure=IS_PROD, samesite='None')
+        response.set_cookie(key='refresh', value=refresh, httponly=True, secure=IS_PROD, samesite='None')
         return response
     
 
@@ -105,8 +107,8 @@ class LogoutTokenDeleteView(APIView):
         except TokenError:
             return Response({'detail': 'Invalid or expired Refresh-Token.'},status=status.HTTP_400_BAD_REQUEST)
         response = Response({'detail': 'Logout successful! All tokens will be deleted. Refresh token is now invalid.'},status=status.HTTP_200_OK)
-        response.delete_cookie('access')
-        response.delete_cookie('refresh')
+        response.delete_cookie('access', path='/', samesite='None')
+        response.delete_cookie('refresh', path='/', samesite='None')
         return response
     
 

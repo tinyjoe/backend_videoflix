@@ -5,7 +5,7 @@ from django.core.files import File
 from django.conf import settings
 from numpy import rint
 from videoflix_app.models import Video
-from .services import validate_hls
+from .utils import validate_hls
 
 
 def convert_video(video_id, resolution):
@@ -56,7 +56,9 @@ def save_resolutions(resolution, video, target_absolute_path, target_filename):
 
 def convert_mp4_to_hls(video_id):
     """
-    Converts all available MP4 resolutions to HLS.
+    The function `convert_mp4_to_hls` converts an MP4 video to HLS format by generating different
+    resolutions, creating HLS files, validating the HLS output, and marking the video as HLS ready in a
+    Django project.
     """
     video = Video.objects.get(id=video_id)
     resolutions = {}
@@ -67,8 +69,6 @@ def convert_mp4_to_hls(video_id):
     write_hls_file(video.id, os.path.join(base_dir, 'index.m3u8'))
     validate_hls(video.id)
     video.hls_ready = True
-    print("BASE:", base_dir)
-    print("FILES:", os.listdir(base_dir))
     video.save()
 
 
@@ -89,7 +89,8 @@ def assign_resolutions_paths(video, resolutions):
 
 def resolution_subprocess(video_id, base_dir, resolutions):
     """
-    Creates HLS variant playlists and segments.
+    The function `resolution_subprocess` processes video files at different resolutions using FFmpeg to
+    generate HLS playlists.
     """
     for res, input_path in resolutions.items():
         if not os.path.exists(input_path):
@@ -104,7 +105,8 @@ def resolution_subprocess(video_id, base_dir, resolutions):
 
 def write_hls_file(video_id, master_path):
     """
-    Writes the master HLS playlist.
+    This Python function generates an HLS playlist file with different video resolutions for a given
+    video ID.
     """
     content = f"""#EXTM3U
     #EXT-X-VERSION:3
