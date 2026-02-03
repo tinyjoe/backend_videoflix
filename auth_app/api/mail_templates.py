@@ -16,7 +16,7 @@ def activation_mail_html(user, activation_link):
                 <td align="center" style="padding:40px 0;">
                     <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;">
                         <tr>
-                            <td style="color:#333333; font-size:16px; line-height:1.5;">
+                            <td style="color:#666666; font-size:16px; line-height:1.5;">
                                 <p>Dear {user.email},</p>
                                 <p>
                                     Thank you for registering with <strong>Videoflix</strong>.  
@@ -41,7 +41,7 @@ def activation_mail_html(user, activation_link):
                             </td>
                         </tr>
                         <tr>
-                            <td style="color:#666666; font-size:14px; line-height:1.5;">
+                            <td style="color:#666666; font-size:16px; line-height:1.5;">
                                 <p>
                                     If you did not create an account with us, please disregard this email.
                                 </p>
@@ -97,7 +97,7 @@ def reset_mail_html(reset_link):
                 <td align="center" style="padding:40px 0;">
                     <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;">
                         <tr>
-                            <td style="color:#333333; font-size:16px; line-height:1.5;">
+                            <td style="color:#666666; font-size:16px; line-height:1.5;">
                                 <p>Hello,</p>
                                 <p>
                                     We recently received a request to reset your password. If you made this request, please click on the following link to reset your password:
@@ -121,7 +121,7 @@ def reset_mail_html(reset_link):
                             </td>
                         </tr>
                         <tr>
-                            <td style="color:#666666; font-size:14px; line-height:1.5;">
+                            <td style="color:#666666; font-size:16px; line-height:1.5;">
                                 <p>
                                     Please note that for security reasons, this link is only valid for 24 hours.
                                 </p>
@@ -143,7 +143,7 @@ def reset_mail_html(reset_link):
     """
 
 
-def reset_mail_text(user, reset_link):
+def reset_mail_text(reset_link):
     """
     The function `reset_mail_text` generates a password reset email message with the user's email and a
     reset link.

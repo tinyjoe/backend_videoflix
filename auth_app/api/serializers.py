@@ -34,8 +34,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
         user = User(username=validated_data['email'],email=validated_data['email'], is_active=False)
         user.set_password(validated_data['password'])
         user.save()
-        token = default_token_generator.make_token(user)
-        return {'user': user, 'token': token}
+        self.token = default_token_generator.make_token(user)
+        return user
     
 
 class LoginTokenObtainPairSerializer(TokenObtainPairSerializer):

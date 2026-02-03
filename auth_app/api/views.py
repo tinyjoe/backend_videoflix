@@ -19,10 +19,12 @@ from .permissions import HasRefreshTokenCookie
 User = get_user_model()
 IS_PROD = not settings.DEBUG
 
+
 class RegistrationView(APIView):
     """
     The `RegistrationView` class is an API view for user registration with permission for any user to access.
     """
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -32,9 +34,8 @@ class RegistrationView(APIView):
         """
         serializer = RegistrationSerializer(data=request.data)
         if serializer.is_valid():
-            result = serializer.save()
-            user = result['user']
-            token = result['token']
+            user = serializer.save()
+            token = serializer.token
             send_activation_email(user, token)
             return Response({'user': {'id': user.id, 'email': user.email}, 'token': token}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -44,6 +45,7 @@ class ActivateAccountView(APIView):
     """
     The `ActivateAccountView` class is an API view that handles user account activation.
     """
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def get(self, request, uidb64, token):
@@ -70,6 +72,7 @@ class LoginView(TokenObtainPairView):
     """
     A View that handles user login by obtaining JWT tokens and setting them in HTTP-only cookies.
     """
+    authentication_classes = []
     serializer_class = LoginTokenObtainPairSerializer
     permission_classes = [AllowAny]
 
@@ -84,8 +87,8 @@ class LoginView(TokenObtainPairView):
         access = serializer.validated_data.get('access')
         user = serializer.user
         response = Response({'detail': 'Login successful', 'user': {'id': user.id, 'username': user.username}}, status=status.HTTP_200_OK)
-        response.set_cookie(key='access', value=access, httponly=True, secure=IS_PROD, samesite='None')
-        response.set_cookie(key='refresh', value=refresh, httponly=True, secure=IS_PROD, samesite='None')
+        response.set_cookie(key='access', value=access, httponly=True, secure=True, samesite='None')
+        response.set_cookie(key='refresh', value=refresh, httponly=True, secure=True, samesite='None')
         return response
     
 
