@@ -60,10 +60,12 @@ git clone https://github.com/tinyjoe/backend_videoflix.git
 cd backend_videoflix
 ```
 
-setup environment
+Setup environment
 ```sh
 cp .env.template .env
 ```
+
+Add and change the necessary data so that the project can be started
 
 Run with Docker
 ```sh
