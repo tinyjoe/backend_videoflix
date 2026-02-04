@@ -12,7 +12,7 @@ def send_activation_email(user, token):
     link.
     """
     uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-    activation_link = f"{settings.FRONTEND_URL}pages/auth/activate.html?uid={uidb64}&token={token}"
+    activation_link = f"{settings.FRONTEND_URL}/pages/auth/activate.html?uid={uidb64}&token={token}"
     subject = 'Activate your Videoflix account'
     text_content = activation_mail_text(user, activation_link)
     html_content = activation_mail_html(user, activation_link)
@@ -27,7 +27,7 @@ def send_password_reset_email(user, token):
     and a link to reset the password.
     """
     uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-    reset_link = f"{settings.FRONTEND_URL}pages/auth/confirm_password.html?uid={uidb64}&token={token}"
+    reset_link = f"{settings.FRONTEND_URL}/pages/auth/confirm_password.html?uid={uidb64}&token={token}"
     subject = 'Reset your Videoflix password'
     text_content = reset_mail_text(reset_link)
     html_content = reset_mail_html(reset_link)
