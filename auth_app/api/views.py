@@ -13,11 +13,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
 from .utils import send_activation_email, send_password_reset_email
 from .serializers import PasswordResetSerializer, RegistrationSerializer, LoginTokenObtainPairSerializer
-from .permissions import HasRefreshTokenCookie
 
 
 User = get_user_model()
-IS_PROD = not settings.DEBUG
 
 
 class RegistrationView(APIView):
@@ -96,22 +94,22 @@ class LogoutTokenDeleteView(APIView):
     """
     This class defines a view in a Django REST framework API that handles logging out a user by deleting their access and refresh tokens stored in cookies.
     """
-    permission_classes = [HasRefreshTokenCookie]
+    authentication_classes = []
+    permission_classes = []
     def post(self, request, *args, **kwargs):
         """
         The function logs out a user by deleting their access and refresh tokens stored in cookies.
         """
         refresh_token = request.COOKIES.get('refresh')
-        if not refresh_token:
-            return Response({'detail': 'Refresh-Token missing.'},status=status.HTTP_400_BAD_REQUEST)
-        try:
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-        except TokenError:
-            return Response({'detail': 'Invalid or expired Refresh-Token.'},status=status.HTTP_400_BAD_REQUEST)
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except Exception:
+                pass
         response = Response({'detail': 'Logout successful! All tokens will be deleted. Refresh token is now invalid.'},status=status.HTTP_200_OK)
-        response.delete_cookie('access', path='/', samesite='None')
-        response.delete_cookie('refresh', path='/', samesite='None')
+        response.delete_cookie('access', path='/', samesite='None', secure=True)
+        response.delete_cookie('refresh', path='/', samesite='None', secure=True)
         return response
     
 
