@@ -16,25 +16,31 @@ def activation_mail_html(user, activation_link):
                 <td align="center" style="padding:40px 0;">
                     <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;">
                         <tr>
+                            <td style="padding-bottom:50px;">
+                                <img src="cid:videoflix_logo" alt="Videoflix Logo" width="250" style="display:block;">
+                            </td>
+                        </tr>
+                        <tr>
                             <td style="color:#666666; font-size:16px; line-height:1.5;">
-                                <p>Dear {user.email},</p>
+                                <p>Dear <span style="color:#3547ff;">{user.email}</span>,</p>
                                 <p>
-                                    Thank you for registering with <strong>Videoflix</strong>.  
+                                    Thank you for registering with <span style="color:#3547ff;"><strong>Videoflix</strong></span>.  
                                     To complete your registration and verify your email address, please click the link below:
                                 </p>
                             </td>
                         </tr>
                         <tr>
-                            <td align="center" style="padding:30px 0;">
+                            <td style="padding:30px 0;">
                                 <a href="{activation_link}"
                                    style="
-                                   background-color:#4F46E5;
+                                   background-color:#3547ff;
                                    color:#ffffff;
                                    text-decoration:none;
                                    padding:14px 28px;
                                    border-radius:30px;
                                    font-weight:bold;
                                    display:inline-block;
+                                   font-size:16px;
                                    ">
                                     Activate account
                                 </a>
@@ -105,16 +111,17 @@ def reset_mail_html(reset_link):
                             </td>
                         </tr>
                         <tr>
-                            <td align="center" style="padding:30px 0;">
+                            <td style="padding:30px 0;">
                                 <a href="{reset_link}"
                                    style="
-                                   background-color:#4F46E5;
+                                   background-color:#3547ff;
                                    color:#ffffff;
                                    text-decoration:none;
                                    padding:14px 28px;
                                    border-radius:30px;
                                    font-weight:bold;
                                    display:inline-block;
+                                   font-size:16px;
                                    ">
                                     Reset password
                                 </a>
@@ -132,6 +139,11 @@ def reset_mail_html(reset_link):
                                     Best regards,<br>
                                     Your Videoflix Team.
                                 </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding-top:50px;">
+                                <img src="cid:videoflix_logo" alt="Videoflix Logo" width="250" style="display:block;">
                             </td>
                         </tr>
                     </table>

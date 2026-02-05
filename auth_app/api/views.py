@@ -137,6 +137,7 @@ class CookieTokenRefreshView(TokenRefreshView):
     
 
 class PasswordResetRequestView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -153,6 +154,7 @@ class PasswordResetRequestView(APIView):
     
 
 class PasswordResetConfirmView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request, uidb64, token):

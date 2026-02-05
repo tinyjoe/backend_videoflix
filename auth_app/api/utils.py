@@ -1,3 +1,5 @@
+from email.mime.image import MIMEImage
+from pathlib import Path
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.utils.http import urlsafe_base64_encode
@@ -18,6 +20,7 @@ def send_activation_email(user, token):
     html_content = activation_mail_html(user, activation_link)
     email = EmailMultiAlternatives(subject, text_content, settings.DEFAULT_FROM_EMAIL, [user.email],)
     email.attach_alternative(html_content, 'text/html')
+    add_inline_logo(email)
     email.send()
 
 
@@ -33,4 +36,17 @@ def send_password_reset_email(user, token):
     html_content = reset_mail_html(reset_link)
     email = EmailMultiAlternatives(subject, text_content, settings.DEFAULT_FROM_EMAIL, [user.email],)
     email.attach_alternative(html_content, 'text/html')
+    add_inline_logo(email)
     email.send()
+
+
+def add_inline_logo(email):
+    """
+    The function `add_inline_logo` attaches an inline logo image to an email for branding purposes.
+    """
+    logo_path = Path(settings.BASE_DIR) / 'assets' / 'logo_icon.png'
+    with open(logo_path, 'rb') as f:
+        img = MIMEImage(f.read(), _subtype='png')
+        img.add_header('Content-ID', '<videoflix_logo>')
+        img.add_header('Content-Disposition', 'inline', filename='logo_icon.png')
+        email.attach(img)
