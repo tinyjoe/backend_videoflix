@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode
+from django.views.decorators.csrf import ensure_csrf_cookie,csrf_protect
+from django.utils.decorators import method_decorator
 
 from rest_framework import status
 from rest_framework.views import APIView
@@ -10,12 +12,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from django.conf import settings
 from .utils import send_activation_email, send_password_reset_email
 from .serializers import PasswordResetSerializer, RegistrationSerializer, LoginTokenObtainPairSerializer
 
 
 User = get_user_model()
+
+COOKIE_CONFIG = {'path': '/','samesite': 'Lax','secure': False,}
 
 
 class RegistrationView(APIView):
@@ -66,6 +69,7 @@ class ActivateAccountView(APIView):
             return Response({'detail': 'Account activated successfully'}, status=status.HTTP_200_OK)
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class LoginView(TokenObtainPairView):
     """
     A View that handles user login by obtaining JWT tokens and setting them in HTTP-only cookies.
@@ -84,32 +88,35 @@ class LoginView(TokenObtainPairView):
         refresh = serializer.validated_data.get('refresh')
         access = serializer.validated_data.get('access')
         user = serializer.user
-        response = Response({'detail': 'Login successful', 'user': {'id': user.id, 'username': user.username}}, status=status.HTTP_200_OK)
-        response.set_cookie(key='access', value=access, httponly=True, secure=True, samesite='None')
-        response.set_cookie(key='refresh', value=refresh, httponly=True, secure=True, samesite='None')
+        response = Response({'detail': 'Login successful', 'user': {'id': user.id, 'username': user.email}}, status=status.HTTP_200_OK)
+        response.set_cookie(key='access_token', value=access, httponly=True, **COOKIE_CONFIG)
+        response.set_cookie(key='refresh_token', value=refresh, httponly=True, **COOKIE_CONFIG)
         return response
     
 
+@method_decorator(csrf_protect, name='dispatch')
 class LogoutTokenDeleteView(APIView):
     """
     This class defines a view in a Django REST framework API that handles logging out a user by deleting their access and refresh tokens stored in cookies.
     """
     authentication_classes = []
-    permission_classes = []
+    permission_classes = [AllowAny]
     def post(self, request, *args, **kwargs):
         """
-        The function logs out a user by deleting their access and refresh tokens stored in cookies.
+        Logs out the user by blacklisting the refresh token and deleting all relevant cookies.
         """
-        refresh_token = request.COOKIES.get('refresh')
-        if refresh_token:
-            try:
-                token = RefreshToken(refresh_token)
-                token.blacklist()
-            except Exception:
-                pass
+        refresh_token = request.COOKIES.get('refresh_token')
+        if not refresh_token:
+            return Response({'detail': 'Refresh token not found'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+        except Exception:
+            return Response({'detail': 'Invalid refresh token'}, status=status.HTTP_400_BAD_REQUEST)   
         response = Response({'detail': 'Logout successful! All tokens will be deleted. Refresh token is now invalid.'},status=status.HTTP_200_OK)
-        response.delete_cookie('access', path='/', samesite='None', secure=True)
-        response.delete_cookie('refresh', path='/', samesite='None', secure=True)
+        response.delete_cookie('access_token', path='/')
+        response.delete_cookie('refresh_token', path='/')
+        response.delete_cookie('csrftoken', path='/')
         return response
     
 
@@ -122,7 +129,7 @@ class CookieTokenRefreshView(TokenRefreshView):
         This Python function refreshes an access token using a provided refresh token and sets a new
         access token as a cookie in the response.
         """
-        refresh_token = request.COOKIES.get('refresh')
+        refresh_token = request.COOKIES.get('refresh_token')
         if not refresh_token: 
             return Response({'detail': 'Refresh token not found'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.get_serializer(data={'refresh': refresh_token})
@@ -132,7 +139,7 @@ class CookieTokenRefreshView(TokenRefreshView):
             return Response({'detail': 'Refresh token invalid'}, status=status.HTTP_401_UNAUTHORIZED)
         access_token = serializer.validated_data.get('access_token')
         response = Response({'detail': 'Token refreshed', 'access': access_token}, status=status.HTTP_200_OK)
-        response.set_cookie(key='access', value=access_token, httponly=True, secure=True, samesite='Lax')
+        response.set_cookie(key='access_token', value=access_token, httponly=True, **COOKIE_CONFIG)
         return response
     
 

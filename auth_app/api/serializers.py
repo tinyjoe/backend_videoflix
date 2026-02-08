@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.tokens import default_token_generator
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -69,7 +70,8 @@ class LoginTokenObtainPairSerializer(TokenObtainPairSerializer):
         if not user.is_active:
             raise serializers.ValidationError('Account is not activated')
         self.user = user
-        return super().validate({'username': user.username, 'password': password})
+        refresh = RefreshToken.for_user(user)
+        return {'access': str(refresh.access_token), 'refresh': str(refresh)}
     
 
 class PasswordResetSerializer(serializers.Serializer):
