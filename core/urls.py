@@ -24,4 +24,7 @@ urlpatterns = [
     path('django-rq/', include('django_rq.urls')),
     path('api/', include('auth_app.api.urls')),
     path('api/', include('videoflix_app.api.urls')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+if settings.DEBUG:
+    urlpatterns +=static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
